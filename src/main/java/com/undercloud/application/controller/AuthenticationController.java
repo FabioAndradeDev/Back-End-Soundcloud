@@ -1,6 +1,8 @@
 package com.undercloud.application.controller;
 
+import com.undercloud.application.config.security.TokenService;
 import com.undercloud.application.dto.AuthenticationDTO;
+import com.undercloud.application.dto.LoginResponseDTO;
 import com.undercloud.application.dto.RegisterDTO;
 import com.undercloud.application.entity.UsersEntity;
 import com.undercloud.application.repository.UserRepository;
@@ -16,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("auth")
 public class AuthenticationController {
 
+    @Autowired
+    private TokenService tokenService;
+
     // REMOVIDO: @Autowired private RegisterDTO registerDTO; (DTOs não são autowirados)
 
     @Autowired
@@ -28,7 +33,8 @@ public class AuthenticationController {
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO authenticationDTO){ // Corrigido para @RequestBody
         var userNamePassword = new UsernamePasswordAuthenticationToken(authenticationDTO.login(), authenticationDTO.password());
         var auth = this.authenticationManager.authenticate(userNamePassword);
-        return  ResponseEntity.ok().build();
+        var token = tokenService.generateToken((UsersEntity) auth.getPrincipal());
+        return  ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
     @PostMapping("/register")
